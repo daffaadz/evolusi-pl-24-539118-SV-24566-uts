@@ -14,6 +14,10 @@ RUN npm ci
 # Copy all frontend source files
 COPY . .
 
+# Pass build arguments for environment variables (defaults to /api for reverse proxy)
+ARG VITE_API_BASE_URL=/api
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Build Vite production bundle into /app/dist
 RUN npm run build
 

@@ -54,5 +54,5 @@ HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
     CMD wget -q --spider http://127.0.0.1:8000/up || exit 1
 
 # Auto-migrate database on start and run FrankenPHP Caddy server
-CMD ["sh", "-c", "touch database/database.sqlite && php artisan migrate --force && frankenphp run --config /etc/caddy/Caddyfile"]
+CMD ["sh", "-c", "touch database/database.sqlite && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs && php artisan migrate --force && frankenphp run --config /etc/caddy/Caddyfile"]
 
