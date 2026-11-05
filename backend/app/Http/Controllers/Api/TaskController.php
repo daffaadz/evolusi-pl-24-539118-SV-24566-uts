@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TaskController extends Controller
 {
@@ -36,6 +37,14 @@ class TaskController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'status' => $validated['status'] ?? 'pending',
+        ]);
+
+        Log::info('[TASK] [CREATE] [SUCCESS] Task created successfully', [
+            'who' => 'user_id:' . $request->user()->id,
+            'action' => 'create_task',
+            'reason' => 'Task validated and persisted to database',
+            'task_id' => $task->id,
+            'status' => $task->status,
         ]);
 
         return response()->json([
