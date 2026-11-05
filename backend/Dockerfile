@@ -23,7 +23,7 @@ RUN composer dump-autoload --optimize
 # STAGE 2: RUNTIME (FrankenPHP Application Server on Alpine)
 # High performance, Caddy-based modern application server (+10 bonus)
 # ==============================================================================
-FROM dunglas/frankenphp:1.13-php8.4-alpine AS runtime
+FROM dunglas/frankenphp:1.13.4-php8.4-alpine AS runtime
 
 # Install additional production PHP extensions (pdo_sqlite is already built-in)
 RUN install-php-extensions pdo_mysql zip bcmath
