@@ -58,3 +58,4 @@ class HealthCheckTest extends TestCase
             ]);
     }
 }
+
