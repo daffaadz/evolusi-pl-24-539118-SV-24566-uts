@@ -44,8 +44,8 @@
             "uid": "Prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{name=~\"laravel_.*|prometheus|grafana|cadvisor|node-exporter\"}[1m])) by (name) * 100",
-          "legendFormat": "{{name}}",
+          "expr": "label_replace(sum(rate(container_cpu_usage_seconds_total{image=~\".*(laravel|mariadb|cadvisor|prometheus|grafana|node-exporter).*\", id=~\"/docker/.*\"}[1m])) by (image) * 100, \"container\", \"$1\", \"image\", \".*/([^:]+?)(?::.*)?$\")",
+          "legendFormat": "{{container}}",
           "range": true,
           "refId": "A"
         }
@@ -86,8 +86,8 @@
             "uid": "Prometheus"
           },
           "editorMode": "code",
-          "expr": "container_memory_usage_bytes{name=~\"laravel_.*|prometheus|grafana|cadvisor|node-exporter\"}",
-          "legendFormat": "{{name}}",
+          "expr": "label_replace(sum(container_memory_usage_bytes{image=~\".*(laravel|mariadb|cadvisor|prometheus|grafana|node-exporter).*\", id=~\"/docker/.*\"}) by (image), \"container\", \"$1\", \"image\", \".*/([^:]+?)(?::.*)?$\")",
+          "legendFormat": "{{container}}",
           "range": true,
           "refId": "A"
         }
@@ -237,5 +237,5 @@
   "timezone": "browser",
   "title": "Aplikasi Manajemen Tugas - System & Monitoring Dashboard",
   "uid": "uts-monitoring-dashboard",
-  "version": 1
+  "version": 2
 }
