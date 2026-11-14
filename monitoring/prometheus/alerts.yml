@@ -1,0 +1,12 @@
+groups:
+  - name: application_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Layanan {{ $labels.job }} ({{ $labels.instance }}) tidak dapat dihubungi"
+          description: "Layanan {{ $labels.job }} pada instance {{ $labels.instance }} terdeteksi mati atau tidak merespons selama lebih dari 15 detik."
+          action: "TINDAKAN PERTAMA: Segera jalankan perintah 'docker compose ps' untuk memvalidasi kontainer yang mati, telusuri log error melalui 'docker compose logs {{ $labels.job }}', dan lakukan pemulihan layanan menggunakan 'docker compose restart {{ $labels.job }}'."
