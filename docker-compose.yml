@@ -90,6 +90,93 @@ services:
       retries: 3
       start_period: 5s
 
+  # ==============================================================================
+  # SERVICE 4: PROMETHEUS (v2.55.0)
+  # Metrics collection, time-series storage, and alerting engine
+  # ==============================================================================
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    networks:
+      - uts_network
+
+  # ==============================================================================
+  # SERVICE 5: GRAFANA (11.3.0)
+  # Visualization dashboards and metric analytics
+  # ==============================================================================
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards/json:ro
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    networks:
+      - uts_network
+
+  # ==============================================================================
+  # SERVICE 6: CADVISOR (v0.49.1)
+  # Container resource usage and performance analysis
+  # ==============================================================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "${CADVISOR_PORT:-8082}:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - uts_network
+
+  # ==============================================================================
+  # SERVICE 7: NODE-EXPORTER (v1.8.2)
+  # Host hardware and OS metrics exporter
+  # ==============================================================================
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "${NODE_EXPORTER_PORT:-9100}:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    networks:
+      - uts_network
+
 # ==============================================================================
 # BRIDGE NETWORK
 # Isolated private network enabling inter-container DNS service resolution
@@ -100,11 +187,15 @@ networks:
 
 # ==============================================================================
 # NAMED VOLUMES
-# Persistent storage for MariaDB tables and Laravel application logs/cache
+# Persistent storage for MariaDB tables, Laravel cache, Prometheus, and Grafana
 # ==============================================================================
 volumes:
   db_data:
     driver: local
   storage_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
